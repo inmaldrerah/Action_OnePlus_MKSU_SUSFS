@@ -243,6 +243,7 @@ jobs:
           # 定义目录路径
           dir1="./kernel_workspace/kernel_platform/out/msm-kernel-${{ github.event.inputs.CPUD }}-gki/dist/"
           dir2="./kernel_workspace/kernel_platform/common/out/arch/arm64/boot/"
+          dir3="./kernel_workspace/kernel_platform/out/msm-${{ github.event.inputs.CPUD }}-${{ github.event.inputs.CPUD }}-gki/gki_kernel/dist/"
           target1="./AnyKernel3/"
           target2="./kernel_workspace/kernel"
 
@@ -258,16 +259,22 @@ jobs:
               cp "$dir2"Image "$target1"
               cp "$dir2"Image "$target2"
             else
-              # 在 kernel_workspace/kernel_platform/common/out/ 的所有子目录中查找 Image 文件
-              echo "在 kernel_workspace/kernel_platform/common/out/ 的所有子目录中查找 Image 文件"
-              image_path=$(find "./kernel_workspace/kernel_platform/common/out/" -name "Image" | head -n 1)
-              
-              if [ -n "$image_path" ]; then
-                echo "找到 Image 文件: $image_path"
-                cp "$image_path" "$target1"
-                cp "$image_path" "$target2"
+              if find "$dir3" -name "Image" | grep -q "Image"; then
+                echo "文件 Image 在gki_kernel/dist目录中"
+                cp "$dir3"Image "$target1"
+                cp "$dir3"Image "$target2"
               else
-                echo "在所有目录中未找到 Image 文件，构建可能失败"
+                # 在 kernel_workspace/kernel_platform/common/out/ 的所有子目录中查找 Image 文件
+                echo "在 kernel_workspace/kernel_platform/common/out/ 的所有子目录中查找 Image 文件"
+                image_path=$(find "./kernel_workspace/kernel_platform/common/out/" -name "Image" | head -n 1)
+                
+                if [ -n "$image_path" ]; then
+                  echo "找到 Image 文件: $image_path"
+                  cp "$image_path" "$target1"
+                  cp "$image_path" "$target2"
+                else
+                  echo "在所有目录中未找到 Image 文件，构建可能失败"
+                fi
               fi
             fi
           fi

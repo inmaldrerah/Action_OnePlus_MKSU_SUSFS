@@ -42,6 +42,7 @@ on:
           - without ksu
           - tag
           - main
+          - without kpm
         default: main
       SUSFS_ENABLED:
         description: "添加 SUSFS"
@@ -104,7 +105,7 @@ jobs:
         run: |
           if [[ "${{ github.event.inputs.kernelsu_version }}" == "tag" ]]; then
             echo "BRANCH=-" >> $GITHUB_ENV
-          elif [[ "${{ github.event.inputs.kernelsu_version }}" == "main" ]]; then
+          elif [[ "${{ github.event.inputs.kernelsu_version }}" == "main" || "${{ github.event.inputs.kernelsu_version }}" == "without kpm" ]]; then
             echo "BRANCH=-s susfs-dev" >> $GITHUB_ENV
           fi
           
@@ -246,11 +247,14 @@ jobs:
       - name: Apply patch_linux and replace Image
         run: |
           cd kernel_workspace/kernel_platform/out/msm-kernel-${{ github.event.inputs.CPUD }}-gki/dist
-          curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
-          chmod +x patch_linux
-          ./patch_linux
-          rm -f Image
-          mv oImage Image
+          without="without (ksu|kpm)"
+          if [[ ! "${{ github.event.inputs.kernelsu_version }}" =~ $without ]]; then
+            curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
+            chmod +x patch_linux
+            ./patch_linux
+            rm -f Image
+            mv oImage Image
+          fi
           cp Image $GITHUB_WORKSPACE/AnyKernel3/Image
           cp Image $GITHUB_WORKSPACE/kernel_workspace/kernel
          
